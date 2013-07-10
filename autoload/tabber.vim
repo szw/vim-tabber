@@ -333,7 +333,7 @@ endfunction
 
 function! s:tab_contains_modified_buffers(tab) "{{{2
   let tab_contains_modified_buffers = 0
-  let tab_friends = gettabvar(a:tab, "tabfriends_list")
+  let tab_friends = gettabvar(a:tab, "tab_friends_list")
 
   if !empty(tab_friends)
     let tab_buffer_list = map(keys(tab_friends), "str2nr(v:val)")
