@@ -333,10 +333,10 @@ endfunction
 
 function! s:tab_contains_modified_buffers(tab) "{{{2
   let tab_contains_modified_buffers = 0
-  let tab_buffer_list = keys(gettabvar(a:tab, "next_bufferlist_tab_friends", {}))
+  let tab_friends = gettabvar(a:tab, "tabfriends_list")
 
-  if !empty(tab_buffer_list)
-    let tab_buffer_list = map(tab_buffer_list, "str2nr(v:val)")
+  if !empty(tab_friends)
+    let tab_buffer_list = map(keys(tab_friends), "str2nr(v:val)")
   else
     let tab_buffer_list = tabpagebuflist(a:tab)
   endif
