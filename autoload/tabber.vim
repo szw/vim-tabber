@@ -93,7 +93,7 @@ function! tabber#TabLine() "{{{2
     let tabline .= tab_highlight
     let tabline .= s:mouse_handle_for_tab(tab)
     let tabline .= s:highlighted_text('TabLineTabNumber', ' ' . tab, is_active_tab) . tab_highlight
-    let tabline .= s:window_count_for_tab(tab, is_active_tab) . tab_highlight
+    let tabline .= s:window_or_friends_count_for_tab(tab, is_active_tab) . tab_highlight
 
     if s:tab_contains_modified_buffers(tab)
       let tabline .= ' ' . s:highlighted_text('TabLineModifiedFlag', '+', is_active_tab) . tab_highlight
@@ -321,33 +321,52 @@ function! s:highlighted_text(highlight_name, text, is_active_tab) "{{{2
   return '%#' . a:highlight_name . (a:is_active_tab ? 'Sel' : '') . '#' . a:text
 endfunction
 
-function! s:window_count_for_tab(tab, is_active_tab) "{{{2
-  let number_of_windows_in_tab = tabpagewinnr(a:tab, '$')
-  if number_of_windows_in_tab > 1
-    let text = ':' . s:highlighted_text('TabLineWindowCount', number_of_windows_in_tab, a:is_active_tab)
+function! s:small_number(number)
+    let l:small_numbers = ["⁰", "¹", "²", "³", "⁴", "⁵", "⁶", "⁷", "⁸", "⁹"]
+    let l:result = ""
+    let l:number_str = string(a:number)
+
+    for i in range(0, len(l:number_str) - 1)
+      let l:result .= l:small_numbers[str2nr(l:number_str[i])]
+    endfor
+
+    return l:result
+endfunction
+
+function! s:window_or_friends_count_for_tab(tab, is_active_tab) "{{{2
+  if exists("*TabFriends")
+    let number_to_show = len(TabFriends(a:tab))
+  else
+    let number_to_show = tabpagewinnr(a:tab, '$')
+  endif
+
+  if number_to_show > 1
+    let text = s:highlighted_text('TabLineWindowCount', s:small_number(number_to_show), a:is_active_tab)
   else
     let text = ''
   endif
+
   return text
 endfunction
 
 function! s:tab_contains_modified_buffers(tab) "{{{2
   let tab_contains_modified_buffers = 0
-  let tab_friends = gettabvar(a:tab, "tab_friends_list")
 
-  if !empty(tab_friends)
-    let tab_buffer_list = map(keys(tab_friends), "str2nr(v:val)")
+  if exists("*TabFriends")
+    let tab_buffer_list = map(keys(TabFriends(a:tab)), "str2nr(v:val)")
   else
     let tab_buffer_list = tabpagebuflist(a:tab)
   endif
 
   for buffer_number in tab_buffer_list
     let buffer_modified = getbufvar(buffer_number, '&modified')
+
     if buffer_modified
       let tab_contains_modified_buffers = 1
       break
     endif
   endfor
+
   return tab_contains_modified_buffers
 endfunction
 
